@@ -1,0 +1,3 @@
+hmmlearn
+simplejson
+eyed3
