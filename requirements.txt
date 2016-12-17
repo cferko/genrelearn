@@ -1,3 +1,4 @@
 hmmlearn
 simplejson
 eyed3
+soundfile
