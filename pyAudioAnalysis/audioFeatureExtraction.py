@@ -6,6 +6,7 @@ import numpy
 import cPickle
 import aifc
 import math
+import soundfile as sf
 from numpy import NaN, Inf, arange, isscalar, array
 from scipy.fftpack import rfft
 from scipy.fftpack import fft
@@ -721,7 +722,7 @@ def dirWavFeatureExtraction(dirName, mtWin, mtStep, stWin, stStep, computeBEAT=F
     allMtFeatures = numpy.array([])
     processingTimes = []
 
-    types = ('*.wav', '*.aif',  '*.aiff')
+    types = ('*.wav', '*.aif',  '*.aiff', '*.au')
     wavFilesList = []
     for files in types:
         wavFilesList.extend(glob.glob(os.path.join(dirName, files)))
@@ -729,7 +730,10 @@ def dirWavFeatureExtraction(dirName, mtWin, mtStep, stWin, stStep, computeBEAT=F
     wavFilesList = sorted(wavFilesList)
 
     for wavFile in wavFilesList:
-        [Fs, x] = audioBasicIO.readAudioFile(wavFile)            # read file
+	if ".au" in wavFile:
+		x, Fs = sf.read(wavFile)
+	else:
+        	[Fs, x] = audioBasicIO.readAudioFile(wavFile)            # read file
         t1 = time.clock()
         x = audioBasicIO.stereo2mono(x)                          # convert stereo to mono
         if computeBEAT:                                          # mid-term feature extraction for current file
