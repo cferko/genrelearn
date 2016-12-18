@@ -6,7 +6,7 @@ USER root
 
 # Add dependency
 RUN apt-get update
-RUN apt-get install libsndfile1-dev
+RUN apt-get -y install libsndfile1-dev
 
 USER main
 
