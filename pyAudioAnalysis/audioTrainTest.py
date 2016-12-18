@@ -264,6 +264,8 @@ def featureAndTrain(listOfDirs, mtWin, mtStep, stWin, stStep, classifierType, mo
         None. Resulting classifier along with the respective model parameters are saved on files.
     '''
 
+    print "starting feature and train"
+
     # STEP A: Feature Extraction:
     [features, classNames, _] = aF.dirsWavFeatureExtraction(listOfDirs, mtWin, mtStep, stWin, stStep, computeBEAT=computeBEAT)
 
@@ -274,18 +276,23 @@ def featureAndTrain(listOfDirs, mtWin, mtStep, stWin, stStep, classifierType, mo
     numOfFeatures = features[0].shape[1]
     featureNames = ["features" + str(d + 1) for d in range(numOfFeatures)]
 
-    writeTrainDataToARFF(modelName, features, classNames, featureNames)
+    if os.path.isfile(modelName + ".arff"):
+        print "features already computed"
 
-    for i, f in enumerate(features):
-        if len(f) == 0:
-            print "trainSVM_feature ERROR: " + listOfDirs[i] + " folder is empty or non-existing!"
-            return
+    else:
+	print "computing features"
+        writeTrainDataToARFF(modelName, features, classNames, featureNames)
+
+        for i, f in enumerate(features):
+            if len(f) == 0:
+                print "trainSVM_feature ERROR: " + listOfDirs[i] + " folder is empty or non-existing!"
+                return
 
     # STEP B: Classifier Evaluation and Parameter Selection:
     if classifierType == "svm":
         classifierParams = numpy.array([0.001, 0.01,  0.5, 1.0, 5.0, 10.0])
     elif classifierType == "randomforest":
-        classifierParams = numpy.array([10, 25, 50, 100,200,500])
+        classifierParams = numpy.array([10, 50, 200])
     elif classifierType == "knn":
         classifierParams = numpy.array([1, 3, 5, 7, 9, 11, 13, 15])        
     elif classifierType == "gradientboosting":
@@ -294,7 +301,7 @@ def featureAndTrain(listOfDirs, mtWin, mtStep, stWin, stStep, classifierType, mo
         classifierParams = numpy.array([10, 25, 50, 100,200,500])        
 
     # get optimal classifeir parameter:
-    bestParam = evaluateClassifier(features, classNames, 100, classifierType, classifierParams, 0, perTrain)
+    bestParam = evaluateClassifier(features, classNames, 10, classifierType, classifierParams, 0, perTrain)
 
     print "Selected params: {0:.5f}".format(bestParam)
 
@@ -1085,6 +1092,8 @@ def lda(data, labels, redDim):
 
 
 def writeTrainDataToARFF(modelName, features, classNames, featureNames):
+    if os.path.isfile(modelName + ".arff"):
+        raise("Trying to overwrite arff!")
     f = open(modelName + ".arff", 'w')
     f.write('@RELATION ' + modelName + '\n')
     for fn in featureNames:

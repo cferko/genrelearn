@@ -5,8 +5,15 @@ Created on Sun Dec 18 10:48:38 2016
 @author: cferko
 """
 
-import requests, pickle
+import soundfile as sf
+import requests, pickle, os
 LOOKUP_DICT = pickle.load(open("file_lookup.pkl", "r"))
+
+import IPython
+
+def listen(audio, rate):
+    return IPython.display.Audio(audio, rate = rate)
+
 
 def download_file(url):
     """Helper function to download a file with requests
@@ -28,7 +35,24 @@ def download_file(url):
     
     return local_filename
 
-def get_song(genre, number):
+def format_song_name(genre, number):
+    """Helper function to get a filename
+    
+    Args:
+        genre: a string, one of "blues", "classical", etc.
+        number: an integer between 1 and 1000 (NOT zero-indexed)
+        
+    Returns:
+        a string giving the filename for the specified song
+    """
+    zero_indexed_number = int(number) - 1
+    padded_number = '{:05d}'.format(zero_indexed_number)
+    
+    name = genre + "." + padded_number + ".au"
+    
+    return name
+
+def download_song(genre, number):
     """Fetches one of the 1000 songs
     
     Args:
@@ -38,13 +62,38 @@ def get_song(genre, number):
     Returns:
         None (downloads the file to current directory)
     """
-    zero_indexed_number = int(number) - 1
-    padded_number = '{:05d}'.format(zero_indexed_number)
-    
-    name = genre + "." + padded_number + ".au"
+    name = format_song_name(genre, number)
     url = LOOKUP_DICT[name]
     download_file(url)
     
     return
 
-get_song("blues", 5)
+def get_song(genre, number):
+    """Student-facing convenience function to fetch a numpy array
+    
+    Args:
+        genre: a string, one of "blues", "classical", etc.
+        number: an integer between 1 and 1000 (NOT zero-indexed)
+        
+    Returns:
+        None (downloads the file to current directory)
+    """
+    name = format_song_name(genre, number)
+    if not os.path.isfile(name):
+        download_song(genre, number)
+        
+    data, samplerate = sf.read(name)
+    
+    return data
+
+def get_sample():
+    closer = "https://www.dropbox.com/s/b7lcd4s7pvcroie/closer.wav?dl=1"
+    
+    if not os.path.isfile("closer.wav"):
+        download_file(closer)
+    d1, s1 = sf.read("closer.wav")
+
+    return d1, s1
+    
+if __name__ == "__main__":
+    closer, rate = get_sample()
